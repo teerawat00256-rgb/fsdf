@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เป็นแฟนกันนะ? 💕</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background: linear-gradient(135deg, #fff0f3 0%, #ffe5ec 50%, #ffccd5 100%);
+            overflow-x: hidden;
+            user-select: none;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            box-shadow: 0 20px 40px rgba(255, 150, 170, 0.25);
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.9; }
+            50% { transform: scale(1.12); opacity: 0.3; }
+            100% { transform: scale(0.95); opacity: 0.9; }
+        }
+        .scanning-ring {
+            animation: pulse-ring 1.8s infinite ease-in-out;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+        }
+        .float-anim {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+        .shake-anim {
+            animation: shake 0.4s ease-in-out;
+        }
+        /* Page Transition Animations */
+        .page-enter {
+            opacity: 0;
+            transform: scale(0.9) translateY(20px);
+            filter: blur(8px);
+        }
+        .page-active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            filter: blur(0);
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .page-exit {
+            opacity: 0;
+            transform: scale(1.05) translateY(-15px);
+            filter: blur(8px);
+            transition: all 0.35s ease-in;
+        }
+        .confetti {
+            position: fixed;
+            width: 12px;
+            height: 12px;
+            pointer-events: none;
+            z-index: 50;
+            animation: fall 3.5s linear infinite;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+
+    <div class="absolute inset-0 pointer-events-none overflow-hidden z-0" id="bg-hearts"></div>
+
+    <!-- Sound Toggle Button -->
+    <button id="sound-toggle" class="absolute top-5 right-5 z-30 bg-white/90 hover:bg-white text-pink-500 p-3 rounded-full shadow-lg backdrop-blur-md transition-transform hover:scale-110 flex items-center justify-center w-12 h-12">
+        <i class="fa-solid fa-volume-xmark text-lg" id="sound-icon"></i>
+    </button>
+
+    <div class="w-full max-w-md z-10 relative">
+
+        <!-- STEP 1 -->
+        <div id="step-1" class="glass-card rounded-3xl p-8 text-center page-active">
+            <div class="mb-4 inline-block bg-pink-100 text-pink-500 px-4 py-1.5 rounded-full text-sm font-semibold shadow-sm">
+                🔒 วางนิ้วของคุณตรงนี้
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">เพื่อยืนยันหัวใจของคุณ 💖</h1>
+            <p class="text-gray-500 text-sm mb-8">กดค้างไว้ที่ปุ่มลายนิ้วมือด้านล่าง</p>
+
+            <div class="relative w-44 h-44 mx-auto mb-8 flex items-center justify-center cursor-pointer select-none" id="fingerprint-btn">
+                <div class="absolute inset-0 rounded-full border-4 border-dashed border-pink-300 scanning-ring"></div>
+                <div class="absolute inset-2 rounded-full bg-gradient-to-tr from-pink-400 to-rose-400 opacity-20 animate-pulse"></div>
+                <div class="w-32 h-32 rounded-full bg-white shadow-xl flex items-center justify-center text-pink-500 text-6xl relative z-10 transition-transform active:scale-95">
+                    <i class="fa-solid fa-fingerprint"></i>
+                </div>
+            </div>
+
+            <div class="w-full bg-gray-100 rounded-full h-3.5 mb-3 overflow-hidden shadow-inner p-0.5">
+                <div id="progress-bar" class="bg-gradient-to-r from-pink-400 to-rose-500 h-full rounded-full transition-all duration-100" style="width: 0%"></div>
+            </div>
+            <p id="progress-text" class="text-xs text-gray-400 font-medium">กำลังสแกน... 0% (กดค้างไว้)</p>
+        </div>
+
+        <!-- STEP 2 -->
+        <div id="step-2" class="glass-card rounded-3xl p-8 text-center page-enter hidden">
+            <div class="w-16 h-16 mx-auto mb-3 bg-pink-100 rounded-full flex items-center justify-center text-pink-500 text-3xl shadow-inner">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-1">ยินดีด้วย! 💖</h2>
+            <p class="text-gray-500 text-sm mb-6">สแกนยืนยันตัวตนสำเร็จแล้ว</p>
+
+            <div class="bg-pink-50/80 rounded-2xl p-5 mb-6 shadow-sm border border-pink-100 text-left space-y-3.5">
+                <div class="flex items-center gap-3 text-sm font-medium text-gray-700">
+                    <span class="w-6 h-6 rounded-full bg-pink-500 text-white flex items-center justify-center text-xs shadow shrink-0"><i class="fa-solid fa-check"></i></span>
+                    <span>ยืนยันด้วยลายนิ้วมือถูกต้อง</span>
+                </div>
+                <div class="flex items-center gap-3 text-sm font-medium text-gray-700">
+                    <span class="w-6 h-6 rounded-full bg-pink-500 text-white flex items-center justify-center text-xs shadow shrink-0"><i class="fa-solid fa-check"></i></span>
+                    <span>ผู้สมัครน่ารักเกินมาตรฐาน 100%</span>
+                </div>
+                <div class="flex items-center gap-3 text-sm font-medium text-gray-700">
+                    <span class="w-6 h-6 rounded-full bg-pink-500 text-white flex items-center justify-center text-xs shadow shrink-0"><i class="fa-solid fa-check"></i></span>
+                    <span>ระดับความซื่อสัตย์ 99.9% 💖</span>
+                </div>
+                <div class="flex items-center gap-3 text-sm font-medium text-gray-700">
+                    <span class="w-6 h-6 rounded-full bg-pink-500 text-white flex items-center justify-center text-xs shadow shrink-0"><i class="fa-solid fa-check"></i></span>
+                    <span>ไม่มีประวัติการนอกใจ ✨</span>
+                </div>
+            </div>
+
+            <button id="btn-goto-prep" class="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold py-3.5 px-6 rounded-full shadow-lg shadow-pink-300 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 text-base">
+                <span>เปิดกล่องของขวัญของคุณ</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <!-- STEP 3 -->
+        <div id="step-3" class="glass-card rounded-3xl p-8 text-center page-enter hidden">
+            <h2 class="text-xl font-bold text-gray-800 mb-2">กำลังเตรียมกล่องของขวัญของคุณ...</h2>
+            <p class="text-gray-400 text-xs mb-8">โปรดรอสักครู่ 💕</p>
+
+            <div class="relative w-52 h-40 mx-auto mb-8 bg-slate-800 rounded-2xl shadow-xl p-4 flex flex-col justify-between overflow-hidden border-2 border-slate-700">
+                <div class="flex justify-between items-center border-b border-slate-700 pb-2">
+                    <div class="flex gap-1.5">
+                        <div class="w-3 h-3 bg-red-400 rounded-full"></div>
+                        <div class="w-3 h-3 bg-amber-400 rounded-full"></div>
+                        <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                    </div>
+                    <div class="text-[10px] text-gray-400 font-mono">GIFT-BOX</div>
+                </div>
+                <div class="my-auto flex items-center justify-center">
+                    <i id="envelope-icon" class="fa-solid fa-gift text-pink-400 text-5xl animate-bounce"></i>
+                </div>
+                <div class="text-[10px] text-pink-300 font-mono text-right">PREPARING... ✓</div>
+            </div>
+
+            <div class="w-full bg-gray-100 rounded-full h-3.5 mb-2 overflow-hidden shadow-inner">
+                <div id="prep-progress-bar" class="bg-gradient-to-r from-pink-400 to-rose-500 h-full rounded-full transition-all duration-150" style="width: 0%"></div>
+            </div>
+            <p id="prep-progress-text" class="text-xs text-pink-500 font-semibold">อนุมัติแล้ว! กำลังโหลด... 0%</p>
+        </div>
+
+        <!-- STEP 4 -->
+        <div id="step-4" class="glass-card rounded-3xl p-8 text-center page-enter hidden">
+            <div class="mb-3 inline-block bg-pink-100 text-pink-600 px-4 py-1.5 rounded-full text-xs font-semibold shadow-sm">
+                🎁 อนุมัติแล้ว! เก็บไว้ในของขวัญแล้ว
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-1">อนุมัติแล้ว! 💖</h2>
+            <p class="text-gray-500 text-sm mb-6">เห็นอะไรอย่างนี้แล้วหรือยัง?</p>
+
+            <div id="gift-box" class="cursor-pointer float-anim my-6 inline-block transition-transform hover:scale-110 active:scale-95">
+                <div class="w-44 h-44 bg-gradient-to-tr from-rose-500 to-pink-500 rounded-3xl mx-auto shadow-2xl flex items-center justify-center relative border-4 border-white/90">
+                    <div class="absolute inset-y-0 w-12 bg-pink-200/90 shadow-md"></div>
+                    <div class="absolute inset-x-0 h-12 bg-pink-200/90 shadow-md"></div>
+                    <div class="absolute -top-5 w-14 h-9 border-4 border-pink-200 rounded-t-full"></div>
+                    <div class="text-white text-6xl relative z-10"><i class="fa-solid fa-gift"></i></div>
+                </div>
+            </div>
+            <p class="text-xs text-gray-400 font-medium animate-pulse">แตะที่กล่องเพื่อเปิดดูคำตอบ 💖</p>
+        </div>
+
+        <!-- STEP 5 -->
+        <div id="step-5" class="glass-card rounded-3xl p-8 text-center page-enter hidden relative min-h-[460px] flex flex-col justify-between items-center overflow-hidden">
+            <div class="w-full flex flex-col items-center">
+                <div class="w-24 h-24 mx-auto mb-3 bg-pink-100 rounded-full flex items-center justify-center shadow-inner float-anim">
+                    <span class="text-5xl" id="proposal-avatar">🐱💖</span>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">เป็นแฟนกันไหมนะ? 💕</h2>
+                <p class="text-gray-500 text-sm mb-4" id="proposal-subtitle">อยากมีเธออยู่ข้างๆ ทุกวันเลยนะ 🥺</p>
+            </div>
+
+            <!-- ปุ่มเรียงซ้าย-ขวา แบบ Grid แยกฝั่งชัดเจน -->
+            <div class="w-full grid grid-cols-2 gap-4 items-center justify-items-center my-auto min-h-[120px]" id="proposal-container">
+                <div class="w-full flex justify-center items-center">
+                    <button id="btn-yes" class="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold py-3.5 px-6 rounded-full shadow-xl shadow-pink-300 transition-all duration-300 text-base flex items-center justify-center gap-1">
+                        <span>เป็น</span> <i class="fa-solid fa-heart animate-pulse text-sm"></i>
+                    </button>
+                </div>
+                <div class="w-full flex justify-center items-center relative">
+                    <button id="btn-no" class="bg-gray-200 hover:bg-gray-300 text-gray-600 font-semibold py-3.5 px-6 rounded-full transition-all duration-200 text-base shadow-md whitespace-nowrap">
+                        ไม่เป็น
+                    </button>
+                </div>
+            </div>
+
+            <div class="h-4"></div>
+        </div>
+
+        <!-- STEP 6: Certificate Style -->
+        <div id="step-6" class="glass-card rounded-3xl p-6 text-center page-enter hidden">
+            <div class="mb-2 inline-block bg-pink-100 text-pink-600 px-3 py-1 rounded-full text-[11px] font-semibold shadow-sm">
+                🎉 ยินดีด้วย! บันทึกความสัมพันธ์สำเร็จ
+            </div>
+            <h2 class="text-2xl font-bold text-rose-600 mb-1">เรารักกันแล้วนะ! 🥰❤️</h2>
+            <p class="text-gray-500 text-xs mb-4">นี่คือใบรับรองความเป็นแฟนของเรานะคะ ✨</p>
+
+            <!-- Certificate Box -->
+            <div class="bg-white/90 rounded-2xl p-4 mb-4 shadow-sm border-2 border-pink-200 relative text-left">
+                <div class="text-center mb-3">
+                    <div class="text-[10px] tracking-widest text-pink-400 font-bold uppercase">Official Certificate of Love</div>
+                    <div class="text-base font-bold text-gray-800 flex items-center justify-center gap-1">
+                        ใบรับรองความเป็นแฟน <i class="fa-solid fa-heart text-rose-500 text-xs"></i>
+                    </div>
+                    <div class="border-b border-dashed border-pink-200 my-2"></div>
+                </div>
+
+                <div class="space-y-2 text-xs text-gray-700">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">สถานะความสัมพันธ์:</span>
+                        <span class="font-bold text-rose-600">แฟนกันแล้ว 🥰</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">ระดับความรัก:</span>
+                        <span class="font-bold text-rose-600">100% (ไม่มีวันลด) 💖</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">ระยะเวลาสัญญา:</span>
+                        <span class="font-bold text-rose-600">ตลอดไป ✨</span>
+                    </div>
+                </div>
+
+                <!-- Approved Stamp -->
+                <div class="absolute right-3 bottom-6 w-16 h-16 rounded-full border-2 border-rose-400 bg-rose-50/90 flex flex-col items-center justify-center text-rose-500 rotate-[-12deg] shadow-sm">
+                    <i class="fa-solid fa-heart text-xs mb-0.5"></i>
+                    <span class="text-[9px] font-bold tracking-wider">ตกลง</span>
+                    <span class="text-[8px] font-bold">APPROVED</span>
+                </div>
+            </div>
+
+            <div class="p-3 bg-pink-50 rounded-2xl border border-pink-200 text-pink-600 font-medium text-xs shadow-inner">
+                "ขอบคุณที่ตกลงมาเดินข้างกันนะคะ ตั้งแต่นี้ไปเค้าจะดูแลเธออย่างดีที่สุดเลย! 💕"
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let audioCtx = null;
+        let isMuted = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playTone(frequency, type, duration) {
+            if (isMuted) return;
+            try {
+                initAudio();
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {
+                console.log("Audio disabled");
+            }
+        }
+
+        function playSuccessChord() {
+            if (isMuted) return;
+            setTimeout(() => playTone(523.25, 'sine', 0.3), 0);
+            setTimeout(() => playTone(659.25, 'sine', 0.3), 150);
+            setTimeout(() => playTone(783.99, 'sine', 0.5), 300);
+            setTimeout(() => playTone(1046.50, 'sine', 0.8), 450);
+        }
+
+        const soundToggle = document.getElementById('sound-toggle');
+        const soundIcon = document.getElementById('sound-icon');
+        soundToggle.addEventListener('click', () => {
+            isMuted = !isMuted;
+            initAudio();
+            if (isMuted) {
+                soundIcon.className = 'fa-solid fa-volume-xmark text-lg';
+                soundToggle.classList.remove('bg-pink-100');
+            } else {
+                soundIcon.className = 'fa-solid fa-volume-high text-lg';
+                soundToggle.classList.add('bg-pink-100');
+                playTone(440, 'sine', 0.2);
+            }
+        });
+
+        // Floating Background Particles
+        const bgHearts = document.getElementById('bg-hearts');
+        const heartSymbols = ['❤️', '💖', '💕', '💗', '✨', '🌸', '🌷'];
+        for (let i = 0; i < 20; i++) {
+            const span = document.createElement('span');
+            span.className = 'absolute text-pink-300 opacity-40 select-none';
+            span.style.left = Math.random() * 100 + 'vw';
+            span.style.top = Math.random() * 100 + 'vh';
+            span.style.fontSize = (Math.random() * 24 + 16) + 'px';
+            span.style.animation = `float ${Math.random() * 3 + 2.5}s ease-in-out infinite alternate`;
+            span.innerHTML = heartSymbols[Math.floor(Math.random() * heartSymbols.length)];
+            bgHearts.appendChild(span);
+        }
+
+        function switchPage(fromEl, toEl) {
+            fromEl.classList.remove('page-active');
+            fromEl.classList.add('page-exit');
+            playTone(587.33, 'triangle', 0.3);
+
+            setTimeout(() => {
+                fromEl.classList.add('hidden');
+                fromEl.classList.remove('page-exit');
+
+                toEl.classList.add('hidden', 'page-enter');
+                toEl.classList.remove('hidden');
+                void toEl.offsetWidth;
+                toEl.classList.remove('page-enter');
+                toEl.classList.add('page-active');
+            }, 350);
+        }
+
+        // DOM Elements
+        const step1 = document.getElementById('step-1');
+        const step2 = document.getElementById('step-2');
+        const step3 = document.getElementById('step-3');
+        const step4 = document.getElementById('step-4');
+        const step5 = document.getElementById('step-5');
+        const step6 = document.getElementById('step-6');
+
+        // STEP 1 Logic
+        const fingerprintBtn = document.getElementById('fingerprint-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+
+        let scanningInterval = null;
+        let progress = 0;
+        let isScanning = false;
+
+        function startScanning() {
+            if (isScanning) return;
+            isScanning = true;
+            progress = 0;
+
+            scanningInterval = setInterval(() => {
+                progress += 2.5;
+                if (progress > 100) progress = 100;
+                progressBar.style.width = progress + '%';
+                progressText.innerText = `กำลังสแกน... ${Math.floor(progress)}%`;
+                playTone(200 + progress * 3, 'sine', 0.05);
+
+                if (progress === 100) {
+                    clearInterval(scanningInterval);
+                    playSuccessChord();
+                    setTimeout(() => {
+                        switchPage(step1, step2);
+                    }, 300);
+                }
+            }, 40);
+        }
+
+        function stopScanning() {
+            if (progress < 100 && isScanning) {
+                clearInterval(scanningInterval);
+                isScanning = false;
+                playTone(150, 'sawtooth', 0.2);
+                step1.classList.add('shake-anim');
+                progressText.innerText = '❌ ยกเลิกการสแกน กดค้างไว้นะคะ!';
+                setTimeout(() => {
+                    step1.classList.remove('shake-anim');
+                    progress = 0;
+                    progressBar.style.width = '0%';
+                    progressText.innerText = 'กำลังสแกน... 0% (กดค้างไว้)';
+                }, 500);
+            }
+        }
+
+        fingerprintBtn.addEventListener('mousedown', startScanning);
+        fingerprintBtn.addEventListener('mouseup', stopScanning);
+        fingerprintBtn.addEventListener('mouseleave', stopScanning);
+        fingerprintBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startScanning(); });
+        fingerprintBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopScanning(); });
+
+        // STEP 2 -> STEP 3
+        const btnGotoPrep = document.getElementById('btn-goto-prep');
+        btnGotoPrep.addEventListener('click', () => {
+            switchPage(step2, step3);
+            startGiftPreparation();
+        });
+
+        // STEP 3
+        function startGiftPreparation() {
+            let prepProgress = 0;
+            const prepBar = document.getElementById('prep-progress-bar');
+            const prepText = document.getElementById('prep-progress-text');
+
+            const prepInterval = setInterval(() => {
+                prepProgress += 4;
+                if (prepProgress > 100) prepProgress = 100;
+                prepBar.style.width = prepProgress + '%';
+                prepText.innerText = `อนุมัติแล้ว! กำลังโหลด... ${prepProgress}%`;
+                playTone(300 + prepProgress * 2, 'sine', 0.03);
+
+                if (prepProgress === 100) {
+                    clearInterval(prepInterval);
+                    playSuccessChord();
+                    setTimeout(() => {
+                        switchPage(step3, step4);
+                    }, 400);
+                }
+            }, 60);
+        }
+
+        // STEP 4
+        const giftBox = document.getElementById('gift-box');
+        giftBox.addEventListener('click', () => {
+            playSuccessChord();
+            createMiniConfetti();
+            switchPage(step4, step5);
+        });
+
+        // STEP 5 Logic
+        const btnYes = document.getElementById('btn-yes');
+        const btnNo = document.getElementById('btn-no');
+
+        let noAttempts = 0;
+        const noPhrases = [
+            "ไม่เป็น",
+            "แน่ใจหรอ? 🥺",
+            "คิดใหม่ได้นะ...",
+            "กด 'เป็น' เถอะนะ!",
+            "อย่าทำร้ายใจเค้าเลย 😭",
+            "งอนแล้วน้า 😾",
+            "หนีแล้วน้าาา! 🏃‍♂️",
+            "หายไปแย้ว! ✨"
+        ];
+
+        function handleNoButtonBehavior() {
+            if (noAttempts >= 8) return;
+
+            noAttempts++;
+            playTone(320 - noAttempts * 30, 'sawtooth', 0.12);
+
+            if (noAttempts < noPhrases.length) {
+                btnNo.innerText = noPhrases[noAttempts];
+            }
+
+            const yesScale = 1 + (noAttempts * 0.2);
+            btnYes.style.transform = `scale(${yesScale})`;
+
+            const randomX = (Math.random() - 0.5) * 80;
+            const randomY = (Math.random() - 0.5) * 60;
+            const noScale = Math.max(0, 1 - (noAttempts * 0.13));
+            const noOpacity = Math.max(0, 1 - (noAttempts * 0.13));
+
+            btnNo.style.opacity = `${noOpacity}`;
+            btnNo.style.transform = `translate(${randomX}px, ${randomY}px) scale(${noScale})`;
+
+            if (noAttempts >= 7) {
+                btnNo.style.pointerEvents = 'none';
+                btnNo.style.visibility = 'hidden';
+            }
+        }
+
+        btnNo.addEventListener('mouseenter', handleNoButtonBehavior);
+        btnNo.addEventListener('click', (e) => {
+            e.preventDefault();
+            handleNoButtonBehavior();
+        });
+        btnNo.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleNoButtonBehavior();
+        });
+
+        // STEP 5 -> STEP 6
+        btnYes.addEventListener('click', () => {
+            playSuccessChord();
+            switchPage(step5, step6);
+            createConfettiExplosion();
+        });
+
+        // Confetti Effects
+        function createMiniConfetti() {
+            for (let i = 0; i < 30; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = ['#ff758c', '#ff7eb3', '#ff6b6b', '#ffa8a8'][Math.floor(Math.random() * 4)];
+                confetti.style.width = (Math.random() * 8 + 6) + 'px';
+                confetti.style.height = confetti.style.width;
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0%';
+                confetti.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 3500);
+            }
+        }
+
+        function createConfettiExplosion() {
+            for (let i = 0; i < 80; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = ['#ff758c', '#ff7eb3', '#ff6b6b', '#ffa8a8', '#ffd166', '#ef476f'][Math.floor(Math.random() * 6)];
+                confetti.style.width = (Math.random() * 10 + 6) + 'px';
+                confetti.style.height = confetti.style.width;
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0%';
+                confetti.style.animationDuration = (Math.random() * 2.5 + 2) + 's';
+                confetti.style.animationDelay = (Math.random() * 0.8
